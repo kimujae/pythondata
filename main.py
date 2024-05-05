@@ -5,7 +5,7 @@
 from PyKakao import Local
 import random
 from datetime import datetime, timedelta
-import oracledb         # oracledb 라이브러리 임포트(불러오기)
+#import oracledb         # oracledb 라이브러리 임포트(불러오기)
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
@@ -17,8 +17,23 @@ class Expenditure_detail:
         self.__date = "" #yyyy-mm-dd #랜덤
         self.__amount = 0 # 랜덤
         self.__company = ""
-        self.__card_num = ""
-        self.__tran_code = ""
+        self.__card_num = "" #
+        self.__tran_code = "결제승인" # 현재 데이터 더미는 모두 결제승인
+
+
+    def set_comapany(self, company):
+        self.__company = company
+
+    def get_company(self):
+        return self.__company
+
+    def set_card_num(self, card_num):
+        self.__card_num = card_num
+
+    def get_card_num(self):
+        return self.__card_num
+
+
 
     def set_address(self, address):
         self.__address = address
@@ -54,7 +69,11 @@ class Expenditure_detail:
 # ex.set_store_name("이마트24")
 # print(ex.get_store_name())
 
-
+##### 변수
+# 하루 소비횟수 (랜덤 : 0 ~ 15회)
+# 오프라인 소비 vs 온라인 소비(랜덤)
+# 업종
+# 시간대
 ##### 카테고리 변수 범위 제한? #####
 ##### 대형마트 : 하루 0-2회 1000~ 300000
 ##### 학원 : 하루 0-2회 20000~100000 # 학원도 주기를 가져야한다.
@@ -67,25 +86,33 @@ class Expenditure_detail:
 ##### 온라인 코드 추가 : 온라인 : 하루 0-10회
 ##### 주유소 : 하루 0-1회 10000~90000 #주유소도 주기를 갖는다.
 
-user_addrs = ["금낭화로 24가길"]
+user_addrs = ["금낭화로 24가길", "종로구 동숭길"]
 user_cardnum = ['3053513933283477', '4948924115781567']
 card_company = ['하나카드', '신한카드']
+category = ["MT1", "CS2", "AC5",  "OL7", "CT1", "FD6", "CE7", "HP8"] #온라인도 추가해야된다.
 
-
-category = ["MT1", "CS2", "AC5",  "OL7", "CT1", "FD6", "CE7", "HP8"]
+# 변수 제약 설정
 amount_range = [(1000, 200000), (1000, 15000), (20000, 100000), (10000, 90000), (10000, 100000),  (13000, 35000), (1500, 15000), (6000, 30000)]
 hour_range = [(9, 22),(0, 23),(9, 20),(0, 23),(9, 18), (9, 21),(9, 23),(9, 18)]
-cnt = [1, 6, 2, 1, 2, 4, 2, 1]
-
-res = []
 MAX_EXPENDITURE_CNT = 5
+cnt = [1, 6, 2, 1, 2, 4, 2, 1]
+month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
+week_cnt = [1000, 1000, 1, 1, 1000, 1000, 1000, 1000, 3]
+
+
 date = datetime(year= 2023, month= 5, day=2)
 LOCAL = Local(service_key = "90dc29e2693b1374b551ca88ff65413c")
 
-for user in user_addrs :
+
+
+res = []
+for useridx in range(0, len(user_addrs)) :
     month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
     week_cnt = [1000, 1000, 1, 1, 1000, 1000, 1000, 1000, 3]
-    for i in range (0, 23) :
+
+
+    # 총 생성 일 입력
+    for i in range (0, 10) :
         if(i % 30 == 0) :
             month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
         if(i % 7 == 0) :
@@ -93,7 +120,7 @@ for user in user_addrs :
 
         cnt = [2, 6, 2, 1, 2, 4, 2, 1]
         print(i)
-        coord = LOCAL.search_address(user, dataframe=False)
+        coord = LOCAL.search_address(user_addrs[useridx], dataframe=False)
         x = coord["documents"][0]["road_address"]["x"]
         y = coord["documents"][0]["road_address"]["y"]
 
@@ -135,25 +162,15 @@ for user in user_addrs :
             exp_d.set_store_name(st_name)
             exp_d.set_date(date)
             exp_d.set_amount(amount)
-
-
+            exp_d.set_card_num(user_cardnum[useridx])
+            exp_d.set_comapany(card_company[useridx])
             res.append(exp_d)
         date = date + timedelta(days=1)
 
 for exp_d in res :
-    print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , exp_d.get_amount(), "소비날짜 : ", exp_d.get_date())
+    print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , exp_d.get_amount(), "소비날짜 : ", exp_d.get_date(),
+          "카드번호 : ", exp_d.get_card_num(), "카드회사 : ", exp_d.get_company())
 
 
-# # 1. 커넥션 객체 획득
-# con = oracledb.connect(user="kosa", password="5176", dsn="호스트이름:port/SID")   # DB에 연결 (호스트이름 대신 IP주소 가능)
-# cursor = con.cursor()   # 연결된 DB 지시자(커서) 생성
-#
-# # 2. 레코드를 삽입 후 승인
-# cursor.execute("insert into dept values(50, 'DEVELOPER','LA')")
-# cursor.execute('commit') # sqldeveloper에 커밋
 
-##### 변수
-# 하루 소비횟수 (랜덤 : 0 ~ 15회)
-# 오프라인 소비 vs 온라인 소비(랜덤)
-# 업종
-# 시간대
+
