@@ -1,11 +1,39 @@
 # This is a sample Python script.
-
+import oracledb
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 from PyKakao import Local
 import random
 from datetime import datetime, timedelta
 #import oracledb         # oracledb 라이브러리 임포트(불러오기)
+
+
+
+# drop table transaction_history;
+# CREATE TABLE transaction_history (
+#     transaction_id NUMBER PRIMARY KEY,
+#     transaction_code VARCHAR2(12),
+#     transaction_datetime VARCHAR2(25),
+#     transaction_amount NUMBER,
+#     card_company VARCHAR2(25),
+#     card_number VARCHAR2(25),
+#     store_name VARCHAR2(200),
+#     industry_code VARCHAR2(20)
+# );
+# commit;
+# --CREATE SEQUENCE transaction_id_seq START WITH 1 INCREMENT BY 1;
+# --
+# --CREATE OR REPLACE TRIGGER transaction_history_trigger
+# --BEFORE INSERT ON transaction_history
+# --FOR EACH ROW
+# --BEGIN
+# --    SELECT transaction_id_seq.NEXTVAL INTO :NEW.transaction_id FROM DUAL;
+# --END;
+#
+#
+# desc transaction_history;
+#
+# select * from transaction_history;
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
@@ -15,10 +43,15 @@ class Expenditure_detail:
         self.__category = "" #지도 api
         self.__store_name = "" #지도 api
         self.__date = "" #yyyy-mm-dd #랜덤
-        self.__amount = 0 # 랜덤
+        self.__amount = "" # 랜덤
         self.__company = ""
         self.__card_num = "" #
         self.__tran_code = "결제승인" # 현재 데이터 더미는 모두 결제승인
+
+
+    def get_tran_code(self):
+        return self.__tran_code
+
 
 
     def set_comapany(self, company):
@@ -86,33 +119,38 @@ class Expenditure_detail:
 ##### 온라인 코드 추가 : 온라인 : 하루 0-10회
 ##### 주유소 : 하루 0-1회 10000~90000 #주유소도 주기를 갖는다.
 
-user_addrs = ["금낭화로 24가길", "종로구 동숭길"]
-user_cardnum = ['3053513933283477', '4948924115781567']
-card_company = ['하나카드', '신한카드']
+user_addrs = ["금낭화로 24가길"]
+user_cardnum = ['5654338751249986']
+card_company = ['하나카드']
 category = ["MT1", "CS2", "AC5",  "OL7", "CT1", "FD6", "CE7", "HP8"] #온라인도 추가해야된다.
 
 # 변수 제약 설정
-amount_range = [(1000, 200000), (1000, 15000), (20000, 100000), (10000, 90000), (10000, 100000),  (13000, 35000), (1500, 15000), (6000, 30000)]
+amount_range = [(1000, 20000), (1000, 15000), (20000, 100000), (10000, 90000), (10000, 100000),  (13000, 35000), (1500, 15000), (6000, 30000)]
 hour_range = [(9, 22),(0, 23),(9, 20),(0, 23),(9, 18), (9, 21),(9, 23),(9, 18)]
 MAX_EXPENDITURE_CNT = 5
-cnt = [1, 6, 2, 1, 2, 4, 2, 1]
-month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
-week_cnt = [1000, 1000, 1, 1, 1000, 1000, 1000, 1000, 3]
+cnt = [1, 6, 0, 0, 2, 4, 2, 1]
+month_cnt = [100000, 100000, 0, 0, 100000, 100000, 100000, 3]
+week_cnt = [1000, 1000, 0, 0, 3, 1000, 1000, 1000, 3]
 
 
 date = datetime(year= 2023, month= 5, day=2)
 LOCAL = Local(service_key = "90dc29e2693b1374b551ca88ff65413c")
 
+oracledb.init_oracle_client(lib_dir="C:/hyosungedu/DevUtils/instantclient_21_13")
+con = oracledb.connect(user="kosa", password="5176", dsn="localhost:1521/xe")   # DB에 연결 (호스트이름 대신 IP주소 가능)
+cursor = con.cursor()   # 연결된 DB 지시자(커서) 생성
+
 
 
 res = []
+input = 276
 for useridx in range(0, len(user_addrs)) :
-    month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
-    week_cnt = [1000, 1000, 1, 1, 1000, 1000, 1000, 1000, 3]
+    month_cnt = [100000, 100000, 1, 0, 100000, 100000, 100000, 3]
+    week_cnt = [1000, 1000, 1, 0, 1000, 1000, 1000, 1000, 3]
 
 
     # 총 생성 일 입력
-    for i in range (0, 10) :
+    for i in range (0, 50) :
         if(i % 30 == 0) :
             month_cnt = [100000, 100000, 1, 4, 100000, 100000, 100000, 3]
         if(i % 7 == 0) :
@@ -128,6 +166,7 @@ for useridx in range(0, len(user_addrs)) :
         for i in range(rand_range) :
             idx = len(category) - 1
             rand_int = 0
+            input += 1
 
             while(True) :
                 rand_int =  random.randint(0, idx)
@@ -164,13 +203,16 @@ for useridx in range(0, len(user_addrs)) :
             exp_d.set_amount(amount)
             exp_d.set_card_num(user_cardnum[useridx])
             exp_d.set_comapany(card_company[useridx])
+            # 2. 레코드를 삽입 후 승인
+
+            str = repr(input) + ",'" + exp_d.get_tran_code() +"'," + "'" + exp_d.get_date().strftime('%Y-%m-%d %H:%M:%S') +"'," + repr(exp_d.get_amount())+ ",'" + exp_d.get_company() +"'," + "'" + exp_d.get_card_num() +"'," + "'" + exp_d.get_store_name() +"'," + "'" + exp_d.get_address() +"',"  + "'" + exp_d.get_category() +"'"
+            print(str)
+
+            cursor.execute("insert into transaction_history(transaction_id, transaction_code, transaction_datetime,transaction_amount,card_company,card_number,store_name, store_address, industry_code) values(" + str + ")")
+            cursor.execute('commit')  # sqldeveloper에 커밋
             res.append(exp_d)
         date = date + timedelta(days=1)
 
 for exp_d in res :
-    print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , exp_d.get_amount(), "소비날짜 : ", exp_d.get_date(),
+    print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , repr(exp_d.get_amount()), "소비날짜 : ", exp_d.get_date(),
           "카드번호 : ", exp_d.get_card_num(), "카드회사 : ", exp_d.get_company())
-
-
-
-

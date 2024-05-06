@@ -144,7 +144,7 @@ companys = ["신한카드", "현대카드", "삼성카드", "국민카드","롯�
 
 cardId = -1
 card_benefitId = -1
-for idx in range(0, 8) :
+for idx in range(0, 1) :
     #print(company_arr[idx].get_attribute('alt'))
     btn_arr[idx].click()
     time.sleep(3)
@@ -181,7 +181,6 @@ for idx in range(0, 8) :
         benefit_btn = driver.find_elements(By.CSS_SELECTOR, 'button.benefit')
 
 
-
         #주요혜택 클릭 -> 혜택 디테일정보 얻기
         for jdx in range(0, len(benefit_btn)) :
             benefit_btn[jdx].click()
@@ -212,8 +211,7 @@ for idx in range(0, 8) :
         for sum in benefit_sum :
             card_d_entity.add_benefits_sum(sum.text)
 
-        cards_details.append(card_d_entity
-                             )
+        cards_details.append(card_d_entity)
         print(card_d_entity.get_benefits_sum(), card_d_entity.get_baseRecord())
         #print(card.get_name(), card.get_fee(), card.get_link(), card.get_company())
 
