@@ -133,17 +133,17 @@ month_cnt = [100000, 100000, 0, 0, 100000, 100000, 100000, 3]
 week_cnt = [1000, 1000, 0, 0, 3, 1000, 1000, 1000, 3]
 
 
-date = datetime(year= 2023, month= 5, day=2)
+date = datetime(year= 2024, month= 5, day=1)
 LOCAL = Local(service_key = "90dc29e2693b1374b551ca88ff65413c")
 
 oracledb.init_oracle_client(lib_dir="C:/hyosungedu/DevUtils/instantclient_21_13")
-con = oracledb.connect(user="kosa", password="5176", dsn="localhost:1521/xe")   # DB에 연결 (호스트이름 대신 IP주소 가능)
+con = oracledb.connect(user="admin", password="Rladnwo8938!", dsn="(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=ga538a15a6a32a0_nux2_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))")   # DB에 연결 (호스트이름 대신 IP주소 가능)
 cursor = con.cursor()   # 연결된 DB 지시자(커서) 생성
 
 
 
 res = []
-input = 276
+input = 0
 for useridx in range(0, len(user_addrs)) :
     month_cnt = [100000, 100000, 1, 0, 100000, 100000, 100000, 3]
     week_cnt = [1000, 1000, 1, 0, 1000, 1000, 1000, 1000, 3]
@@ -193,7 +193,7 @@ for useridx in range(0, len(user_addrs)) :
             rand_hour = random.randint(hour_range[rand_int][0], hour_range[rand_int][1])
             rand_minute = random.randint(0, 59)
             date = date.replace(hour= rand_hour, minute=rand_minute)
-
+            print(date.strftime('%Y-%m-%d %H:%M:%S'))
             exp_d = Expenditure_detail()
 
             exp_d.set_category(categ)
@@ -205,14 +205,16 @@ for useridx in range(0, len(user_addrs)) :
             exp_d.set_comapany(card_company[useridx])
             # 2. 레코드를 삽입 후 승인
 
-            str = repr(input) + ",'" + exp_d.get_tran_code() +"'," + "'" + exp_d.get_date().strftime('%Y-%m-%d %H:%M:%S') +"'," + repr(exp_d.get_amount())+ ",'" + exp_d.get_company() +"'," + "'" + exp_d.get_card_num() +"'," + "'" + exp_d.get_store_name() +"'," + "'" + exp_d.get_address() +"',"  + "'" + exp_d.get_category() +"'"
+            str = repr(input) + ",'" + exp_d.get_tran_code() +"', " + "TO_DATE( '"+ exp_d.get_date().strftime('%Y-%m-%d %H:%M:%S') + "', 'YYYY-MM-DD HH24:MI:SS')" +"," + repr(exp_d.get_amount())+ ",'" + exp_d.get_company() +"'," + "'" + exp_d.get_card_num() +"'," + "'" + exp_d.get_store_name() +"'," + "'" + exp_d.get_address() +"',"  + "'" + exp_d.get_category() +"'"
             print(str)
 
-            cursor.execute("insert into transaction_history(transaction_id, transaction_code, transaction_datetime,transaction_amount,card_company,card_number,store_name, store_address, industry_code) values(" + str + ")")
+            cursor.execute("insert into my_data_transactions(transaction_id, transaction_code, transaction_datetime,transaction_amount,card_company,card_number,store_name, store_address, industry_code) values(" + str + ")")
+
             cursor.execute('commit')  # sqldeveloper에 커밋
             res.append(exp_d)
         date = date + timedelta(days=1)
 
-for exp_d in res :
-    print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , repr(exp_d.get_amount()), "소비날짜 : ", exp_d.get_date(),
-          "카드번호 : ", exp_d.get_card_num(), "카드회사 : ", exp_d.get_company())
+# for exp_d in res :
+#     print("가맹점명 : ", exp_d.get_store_name(), "소비카테고리 : ", exp_d.get_category(), "가맹점주소 : ", exp_d.get_address(), "소비금액 : " , repr(exp_d.get_amount()), "소비날짜 : ", exp_d.get_date(),
+#           "카드번호 : ", exp_d.get_card_num(
+#           , "카드회사 : ", exp_d.get_company())
