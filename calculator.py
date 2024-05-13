@@ -35,10 +35,10 @@ def run() :
 
     card_benefits = [
         {"전월실적" : 300000, "MT1" : [0.1, 5000, 50000]},
-        {"전월실적" : 300000, "언제나할인" : [0.07, 99999999, 99999999], "CS2" : [0.7, 9999999,10000]},
+        {"전월실적" : 300000, "언제나할인" : [0.07, 10000, 10000], "CS2" : [0.07, 10000,10000]},
         {"전월실적" : 400000, "FD6" : [1000, 1000, 5000]},
         {"전월실적" : 300000, "CS2" : [0.1, 1000, 5000], "CE7" : [0.1, 1000, 5000] ,"MT1" : [0.05, 2500, 20000],"HP8" : [0.1, 1000, 5000] , "통합한도" : 10000},
-        {"전월실적" : 300000, "OL7" : [0.1, 150000, 150000], "CE7" : [0.05, 150000, 150000], "CS2" : [0.05, 150000, 150000], "통합한도" : 150000},
+        {"전월실적" : 300000, "OL7" : [0.1, 150000, 150000], "CS2" : [0.05, 150000, 150000], "통합한도" : 150000},
         {"전월실적" : 300000, "HP8" : [0.05, 5000, 10000], "OS9" : [0.05, 5000, 10000], "AC5" : [0.1, 5000, 10000], "FD6" : [0.1, 5000, 10000], "통합한도" : 10000},
         {"전월실적" : 500000},
         {"전월실적" : 500000, "MT1" : [0.02, 50000, 50000], "OS9" : [0.02, 50000, 50000]},
@@ -127,13 +127,13 @@ def run() :
                         else:
                             final_dc_amount = card_benefit[h[2]][1] - one_day_res[h[2]]
 
-                        # # 월 할인 한도
-                        # if card_benefit[h[2]][2] < final_dc_amount :
-                        #     final_dc_amount = final_dc_amount - (res[h[2]] - card_benefit[h[2]][2])
-                        #
-                        # # 일 할인 한도
-                        # if card_benefit[h[2]][1] < res[h[2]]:
-                        #     final_dc_amount = final_dc_amount - (res[h[2]] - card_benefit[h[2]][1])
+                        # 월 할인 한도
+                        if card_benefit[h[2]][2] < final_dc_amount :
+
+                            if card_benefit[h[2]][1] < res[h[2]]:
+                                final_dc_amount = final_dc_amount - card_benefit[h[2]][1]
+                            else :
+                                final_dc_amount = final_dc_amount - card_benefit[h[2]][2]
 
                         print(final_dc_amount)
 
@@ -161,15 +161,14 @@ def run() :
                             else:
                                 final_dc_amount = card_benefit["언제나할인"][1] - one_day_res[h[2]]
 
-                            # # 월 할인 한도
-                            # if card_benefit["언제나할인"][2] < final_dc_amount :
-                            #     final_dc_amount = final_dc_amount - (res["언제나할인"] - card_benefit["언제나할인"][2])
-                            #
-                            #
-                            # # 일 할인 한도
-                            # if card_benefit["언제나할인"][1] < res[h[2]]:
-                            #     final_dc_amount = final_dc_amount - (res["언제나할인"] - card_benefit["언제나할인"][1])
+                            # 월 할인 한도
+                            if card_benefit["언제나할인"][2] < final_dc_amount :
 
+                                # 일 할인 한도
+                                if card_benefit["언제나할인"][1] < res[h[2]]:
+                                    final_dc_amount = final_dc_amount -  card_benefit["언제나할인"][1]
+                                else :
+                                    final_dc_amount = final_dc_amount - card_benefit["언제나할인"][2]
 
 
                 if "통합한도" in card_benefit :
@@ -188,6 +187,9 @@ def run() :
         response.append(copy.deepcopy(res))
         for key in res :
             d = d + res[key]
+        res = {"MT1": 0, "언제나할인": 0, "FD6": 0, "CE7": 0, "CS2": 0, "HP8": 0, "CS2": 0, "AC5": 0, "CT1": 0, "OL7": 0,
+               "통합할인액": 0}
+
         #print(d)
 
 
